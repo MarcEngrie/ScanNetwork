@@ -4,5 +4,5 @@ ScanNetwork is a Python script that
 
   2: scans your network looking the availability of an extended range of mDNS services
 
-  3: scans the devices that ar alive on your network for open ports
+  3: scans the devices that are alive on your network for open ports
 
