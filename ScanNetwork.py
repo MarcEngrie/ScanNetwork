@@ -19,7 +19,7 @@ from zeroconf import (
     Zeroconf
 )
 
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 
 strScriptName   = os.path.basename(sys.argv[0])
 strScriptBase   = strScriptName.replace(".py","")
@@ -409,12 +409,7 @@ def scanNetwork(ipalive, startPort, endPort):
     global dictPorts
     
     """ Starts a TCP scan on a given IP address range """
-
-    print(F"Starting TCP port scan from {startIP} to {endIP}")
     # Convert IP addresses to integers
-    start = list(map(int, startIP.split('.')))
-    end = list(map(int, endIP.split('.')))
-
     csv = open(csvFileName, 'r')
     csvlines = csv.readlines()
     for line in csvlines:
@@ -444,10 +439,10 @@ def tcp_scan(ip, startPort, endPort):
             if not tcp.connect_ex((ip, port)):
                 if str(port) in dictPorts:
                     print("        Port {0:6d} on {1:15s} open ({2:})".format(port, ip, dictPorts[str(port)]))
-                    log.write("Port {0:6d} on {1:15s} open ({2:})".format(port, ip, dictPorts[str(port)]))
+                    log.write("Port {0:6d} on {1:15s} open ({2:})\n".format(port, ip, dictPorts[str(port)]))
                 else:
                     print("        Port {0:6d} on {1:15s} open".format(port, ip))
-                    log.write("Port {0:6d} on {1:15s} open".format(port, ip))
+                    log.write("Port {0:6d} on {1:15s} open\n".format(port, ip))
                 tcp.close()
                 log.flush()
                 
