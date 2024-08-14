@@ -19,7 +19,7 @@ from zeroconf import (
     Zeroconf
 )
 
-VERSION = "1.1.0"
+VERSION = "1.2.0"
 
 strScriptName   = os.path.basename(sys.argv[0])
 strScriptBase   = strScriptName.replace(".py","")
@@ -29,8 +29,9 @@ csvFileName     = strScriptPath + "\\" + strScriptName.replace(".py", ".csv")
 
 prop            = False
 dictPorts       = {}
-ipalive         = []  
-
+ipalive         = [] 
+host_ip         = ""
+host_mac        = "" 
 
 DOPORTSCAN      = True
 DOMDNS          = True
@@ -257,6 +258,7 @@ def checkip(ip):
 def scan_ip_range(startIP, endIP):
     
     global ipalive
+    global host_ip, host_mac
     
     # Convert IP addresses to integers
     start = list(map(int, startIP.split('.')))
@@ -274,15 +276,18 @@ def scan_ip_range(startIP, endIP):
                             host, _, _ = socket.gethostbyaddr(ip)
                         except:
                             host = "<not in DNS>"
-                        # Run the arp command to get the MAC address
-                        arp_command = ['arp', '-a', ip]
-                        output = subprocess.check_output(arp_command).decode()
-                        # Use regex to find the MAC address in the output
-                        mac_address = re.search(r'(([a-fA-F0-9]{2}[:-]){5}[a-fA-F0-9]{2})', output)
-                        if mac_address:
-                            mac = mac_address.group(0).replace('-', ':')
+                        if ip != host_ip:   
+                            # Run the arp command to get the MAC address
+                            arp_command = ['arp', '-a', ip]
+                            output = subprocess.check_output(arp_command).decode()
+                            # Use regex to find the MAC address in the output
+                            mac_address = re.search(r'(([a-fA-F0-9]{2}[:-]){5}[a-fA-F0-9]{2})', output)
+                            if mac_address:
+                                mac = mac_address.group(0).replace('-', ':')
+                            else:
+                                mac = ""
                         else:
-                            mac = ""
+                            mac = host_mac
                         print("{0:15s} [{2:17s}] - {1:32s} is alive".format(ip, host, mac))
                         log.write("{0:15s} [{2:17s}] - {1:32s} is alive\n".format(ip, host, mac))
                         
@@ -456,17 +461,22 @@ if __name__ == "__main__":
     
     log = open(logFileName, 'w')
     
+    addr = []
+    mask = []
+    
     # find ip on active interface, skip loopback
     netifs=netifaces.interfaces()
     for netif in netifs:
-        netif = netifaces.ifaddresses(netif)
-        if netifaces.AF_INET in netif:
-            ip = netif[netifaces.AF_INET][0]["addr"]
+        netifaddr = netifaces.ifaddresses(netif)
+        if netifaces.AF_INET in netifaddr:
+            ip = netifaddr[netifaces.AF_INET][0]["addr"]
             if ip != "127.0.0.1":
-                mask=netif[netifaces.AF_INET][0]["netmask"].split('.')
-                addr=netif[netifaces.AF_INET][0]["addr"].split('.')
+                mask      = netifaddr[netifaces.AF_INET][0]["netmask"].split('.')
+                addr      = netifaddr[netifaces.AF_INET][0]["addr"].split('.')
+                host_ip   = netifaddr[netifaces.AF_INET][0]["addr"]
+                host_mac  = netifaddr[netifaces.AF_LINK][0]['addr'].upper()
                 break
-    
+                
     startIP = ""
     endIP   = ""
 
