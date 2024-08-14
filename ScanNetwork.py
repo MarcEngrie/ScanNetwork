@@ -19,7 +19,7 @@ from zeroconf import (
     Zeroconf
 )
 
-VERSION = "1.0.1"
+VERSION = "1.1.0"
 
 strScriptName   = os.path.basename(sys.argv[0])
 strScriptBase   = strScriptName.replace(".py","")
@@ -456,10 +456,17 @@ if __name__ == "__main__":
     
     log = open(logFileName, 'w')
     
-    # interfaces = netifaces.interfaces()
-    interface=netifaces.ifaddresses(netifaces.interfaces()[0])
-    mask=interface[netifaces.AF_INET][0]["netmask"].split('.')
-    addr=interface[netifaces.AF_INET][0]["addr"].split('.')
+    # find ip on active interface, skip loopback
+    netifs=netifaces.interfaces()
+    for netif in netifs:
+        netif = netifaces.ifaddresses(netif)
+        if netifaces.AF_INET in netif:
+            ip = netif[netifaces.AF_INET][0]["addr"]
+            if ip != "127.0.0.1":
+                mask=netif[netifaces.AF_INET][0]["netmask"].split('.')
+                addr=netif[netifaces.AF_INET][0]["addr"].split('.')
+                break
+    
     startIP = ""
     endIP   = ""
 
